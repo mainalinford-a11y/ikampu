@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ikampu — Tents Built for the Ground You Sleep On</title>
+
+<!-- 
+  DESIGN NOTES (for future edits):
+  - Palette: deep pine (#16241C bg), mid pine (#28392F cards), canvas cream (#F3EEE0 text),
+    ember orange (#E37B4C accent/CTA), sage (#8CA88A secondary), tan (#C9A876 tertiary/specs)
+  - Display type: 'Oswald' (condensed, poster/topo-map feel) — body: 'Source Serif 4' (warm, readable)
+  - Utility/spec type: 'JetBrains Mono' (used for numbers — weight, capacity, price)
+  - Signature element: topographic contour-line dividers between sections, and terrain-elevation
+    badges on each product instead of arbitrary 01/02/03 numbering — the badge tells you WHERE
+    that tent is meant to be pitched, which is real information a buyer needs.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  /* ---------- Design tokens ---------- */
+  :root{
+    --pine-deep: #16241C;
+    --pine-mid:  #223225;
+    --pine-card: #28392F;
+    --cream:     #F3EEE0;
+    --cream-dim: #C9C4B3;
+    --ember:     #E37B4C;
+    --ember-dim: #b5603a;
+    --sage:      #8CA88A;
+    --tan:       #C9A876;
+    --line:      rgba(243,238,224,0.12);
+
+    --display: 'Oswald', sans-serif;
+    --body:    'Source Serif 4', serif;
+    --mono:    'JetBrains Mono', monospace;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--pine-deep);
+    color: var(--cream);
+    font-family: var(--body);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+
+  a{ color: inherit; }
+
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ---------- Topographic contour background (signature texture) ---------- */
+  .contour-bg{
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  /* ---------- Nav ---------- */
+  header{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(22,36,28,0.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.wrap{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 76px;
+  }
+  .brand{
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    color: var(--cream);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand svg{ flex-shrink: 0; }
+  .nav-links{
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a{
+    font-family: var(--display);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--cream-dim);
+    transition: color 0.2s ease;
+  }
+  .nav-links a:hover, .nav-links a:focus-visible{ color: var(--ember); }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position: relative;
+    padding: 120px 0 100px;
+    overflow: hidden;
+  }
+  .hero .wrap{ position: relative; z-index: 1; }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before{
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--sage);
+  }
+  h1{
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(42px, 6.5vw, 84px);
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+    max-width: 15ch;
+    color: var(--cream);
+  }
+  h1 em{
+    font-style: normal;
+    color: var(--ember);
+  }
+  .hero-sub{
+    margin-top: 28px;
+    font-size: 19px;
+    max-width: 46ch;
+    color: var(--cream-dim);
+  }
+  .hero-cta{
+    margin-top: 40px;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn{
+    font-family: var(--display);
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 16px 30px;
+    border-radius: 2px;
+    display: inline-block;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+    border: 1px solid transparent;
+  }
+  .btn-primary{
+    background: var(--ember);
+    color: var(--pine-deep);
+    font-weight: 600;
+  }
+  .btn-primary:hover, .btn-primary:focus-visible{
+    background: var(--cream);
+    transform: translateY(-2px);
+  }
+  .btn-ghost{
+    border-color: var(--line);
+    color: var(--cream-dim);
+  }
+  .btn-ghost:hover, .btn-ghost:focus-visible{
+    border-color: var(--sage);
+    color: var(--cream);
+  }
+  .btn:focus-visible{ outline: 2px solid var(--ember); outline-offset: 3px; }
+
+  .hero-stats{
+    margin-top: 72px;
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 48px;
+    max-width: 620px;
+  }
+  .stat-num{
+    font-family: var(--mono);
+    font-size: 30px;
+    color: var(--tan);
+  }
+  .stat-label{
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+    margin-top: 4px;
+  }
+
+  /* ---------- Contour divider (signature element) ---------- */
+  .contour-divider{
+    width: 100%;
+    height: 64px;
+    display: block;
+  }
+
+  /* ---------- Section shell ---------- */
+  section{ position: relative; padding: 90px 0; }
+  .section-head{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 56px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .section-title{
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(28px, 4vw, 44px);
+    color: var(--cream);
+  }
+  .section-note{
+    font-size: 15px;
+    color: var(--cream-dim);
+    max-width: 40ch;
+  }
+
+  /* ---------- Catalog grid ---------- */
+  .catalog{
+    background: var(--pine-mid);
+  }
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+  }
+  .card{
+    background: var(--pine-card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .card:hover{
+    border-color: var(--sage);
+    transform: translateY(-3px);
+  }
+  .card-top{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+  .terrain-badge{
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--pine-deep);
+    background: var(--tan);
+    padding: 5px 9px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .tent-icon{
+    width: 100%;
+    height: 150px;
+    margin: 6px 0 20px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+  }
+  .tent-icon svg{ width: 78%; height: 78%; }
+  .card h3{
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+  .card p.desc{
+    font-size: 14.5px;
+    color: var(--cream-dim);
+    margin-bottom: 20px;
+    flex-grow: 1;
+  }
+  .specs{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    margin-bottom: 20px;
+  }
+  .spec-label{
+    font-family: var(--display);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sage);
+  }
+  .spec-val{
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--cream);
+    margin-top: 2px;
+  }
+  .card-footer{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+  }
+  .price{
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--tan);
+  }
+  .card-cta{
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ember);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ember);
+    padding-bottom: 2px;
+    transition: opacity 0.2s ease;
+  }
+  .card-cta:hover, .card-cta:focus-visible{ opacity: 0.75; }
+
+  /* ---------- Why section ---------- */
+  .why-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 40px;
+  }
+  .why-item .why-icon{
+    width: 44px; height: 44px;
+    margin-bottom: 18px;
+  }
+  .why-item h4{
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--cream);
+    margin-bottom: 8px;
+  }
+  .why-item p{
+    font-size: 14.5px;
+    color: var(--cream-dim);
+  }
+
+  /* ---------- Contact / CTA band ---------- */
+  .contact-band{
+    background: var(--pine-mid);
+    text-align: center;
+    padding: 100px 0;
+  }
+  .contact-band h2{
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(30px, 5vw, 52px);
+    color: var(--cream);
+    max-width: 20ch;
+    margin: 0 auto 20px;
+  }
+  .contact-band p{
+    color: var(--cream-dim);
+    max-width: 46ch;
+    margin: 0 auto 36px;
+    font-size: 17px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer{
+    padding: 48px 0;
+    border-top: 1px solid var(--line);
+  }
+  footer .wrap{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer .brand{ font-size: 16px; }
+  footer .foot-note{
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--cream-dim);
+  }
+
+  /* ---------- Floating WhatsApp button ---------- */
+  .whatsapp-float{
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #25D366;
+    color: #0b1a10;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    padding: 13px 20px 13px 14px;
+    border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease;
+  }
+  .whatsapp-float:hover, .whatsapp-float:focus-visible{ transform: translateY(-2px); }
+  .whatsapp-float svg{ flex-shrink: 0; }
+
+  /* Card-level WhatsApp order link (distinct from the ember "inquire" style) */
+  .card-cta-wa{
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #25D366;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid #25D366;
+    padding-bottom: 2px;
+    transition: opacity 0.2s ease;
+  }
+  .card-cta-wa:hover, .card-cta-wa:focus-visible{ opacity: 0.75; }
+
+  @media (max-width: 720px){
+    .nav-links{ display: none; }
+    .hero{ padding: 90px 0 70px; }
+    .hero-stats{ grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    section{ padding: 64px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header>
+  <nav class="wrap">
+    <a href="#top" class="brand">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+        <path d="M13 3 L23 22 H3 Z" stroke="#E37B4C" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+        <path d="M13 3 L13 22" stroke="#E37B4C" stroke-width="1.2"/>
+      </svg>
+      IKAMPU
+    </a>
+    <ul class="nav-links">
+      <li><a href="#catalog">Tents</a></li>
+      <li><a href="#why">Why Ikampu</a></li>
+      <li><a href="#contact">Order</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- ============ HERO ============ -->
+<div id="top" class="hero">
+  <!-- Topographic contour SVG texture, purely decorative -->
+  <svg class="contour-bg" viewBox="0 0 1200 700" preserveAspectRatio="none" aria-hidden="true">
+    <g fill="none" stroke="#8CA88A" stroke-width="1">
+      <path d="M-50,600 C200,550 300,650 500,600 C700,550 800,620 1250,580" opacity="0.5"/>
+      <path d="M-50,560 C220,500 320,600 520,550 C720,500 820,570 1250,530" opacity="0.4"/>
+      <path d="M-50,520 C240,460 340,550 540,500 C740,450 840,520 1250,480" opacity="0.3"/>
+      <path d="M-50,480 C260,420 360,500 560,450 C760,400 860,470 1250,430" opacity="0.2"/>
+      <path d="M-50,150 C250,90 350,170 550,120 C750,70 850,140 1250,100" opacity="0.25"/>
+      <path d="M-50,110 C270,50 370,130 570,80 C770,30 870,100 1250,60" opacity="0.15"/>
+    </g>
+  </svg>
+
+  <div class="wrap">
+    <div class="eyebrow">Fieldworthy tents · designed in the Highlands</div>
+    <h1>Built for the ground <em>you actually sleep on.</em></h1>
+    <p class="hero-sub">
+      No showroom fantasy specs. Every Ikampu tent is pitched, rained on, and
+      wind-loaded above treeline before it's ever listed. Pick the terrain — we've
+      already built the tent for it.
+    </p>
+    <div class="hero-cta">
+      <a href="#catalog" class="btn btn-primary">View the lineup</a>
+      <a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20book%20a%20tent" target="_blank" rel="noopener" class="btn btn-ghost">Book on WhatsApp</a>
+    </div>
+
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">6</div>
+        <div class="stat-label">Models in stock</div>
+      </div>
+      <div>
+        <div class="stat-num">-32°</div>
+        <div class="stat-label">Coldest tested pitch</div>
+      </div>
+      <div>
+        <div class="stat-num">120</div>
+        <div class="stat-label">Km/h wind rating, top model</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contour divider between hero and catalog -->
+<svg class="contour-divider" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0,30 C200,10 300,50 500,30 C700,10 800,45 1200,25 L1200,60 L0,60 Z" fill="#223225"/>
+</svg>
+
+<!-- ============ CATALOG ============ -->
+<section id="catalog" class="catalog">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="section-title">Choose by terrain</div>
+      </div>
+      <p class="section-note">
+        Each tag marks the elevation and terrain band a model is built for —
+        that's the spec that actually decides which tent you need.
+      </p>
+    </div>
+
+    <div class="grid">
+
+      <!-- Tent 1 -->
+      <article class="card">
+        <div class="card-top">
+          <span class="terrain-badge">SEA LEVEL · COASTAL</span>
+        </div>
+        <div class="tent-icon" style="background: linear-gradient(180deg, #2a4a52 0%, #223225 65%, #C9A876 100%);">
+          <svg viewBox="0 0 160 100" fill="none" stroke="#F3EEE0" stroke-width="1.6">
+            <path d="M20 85 L80 20 L140 85 Z"/>
+            <path d="M80 20 L80 85"/>
+            <path d="M55 85 L80 55 L105 85"/>
+            <path d="M5 88 Q40 82 80 88 T155 88" stroke="#8CA88A" stroke-width="1" opacity="0.7"/>
+          </svg>
+        </div>
+        <h3>Driftline 2P</h3>
+        <p class="desc">Light, breathable, and built to shed salt air. Our best-seller for beach and lowland car camping.</p>
+        <div class="specs">
+          <div><div class="spec-label">Capacity</div><div class="spec-val">2 persons</div></div>
+          <div><div class="spec-label">Weight</div><div class="spec-val">2.1 kg</div></div>
+          <div><div class="spec-label">Season</div><div class="spec-val">3-season</div></div>
+          <div><div class="spec-label">Packed</div><div class="spec-val">44 × 15 cm</div></div>
+        </div>
+        <div class="card-footer">
+          <span class="price">KES 24,500</span>
+          <a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20buy%20the%20Driftline%202P%20tent" target="_blank" rel="noopener" class="card-cta-wa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.6-1.28 1.16-1.77 1.2-.45.05-1 .07-1.62-.1-.37-.1-.85-.27-1.46-.53-2.57-1.1-4.25-3.7-4.38-3.87-.13-.17-1.05-1.39-1.05-2.65 0-1.26.66-1.88.9-2.13.22-.25.5-.3.66-.3h.48c.15 0 .36-.03.56.43.22.53.75 1.82.82 1.95.07.13.11.28.02.45-.09.17-.13.27-.26.42-.13.15-.28.33-.4.44-.13.13-.27.27-.12.53.15.26.66 1.1 1.42 1.78.98.87 1.8 1.14 2.06 1.27.26.13.41.11.56-.06.15-.17.65-.75.83-1.01.18-.26.35-.21.6-.13.24.09 1.53.72 1.79.85.26.13.44.2.5.31.07.11.07.65-.15 1.25z"/></svg>
+            Buy on WhatsApp
+          </a>
+        </div>
+      </article>
+
+      <!-- Tent 2 -->
+      <article class="card">
+        <div class="card-top">
+          <span class="terrain-badge">800–1500M · FOREST</span>
+        </div>
+        <div class="tent-icon" style="background: linear-gradient(180deg, #1c2e21 0%, #28392F 60%, #2f4636 100%);">
+          <svg viewBox="0 0 160 100" fill="none" stroke="#F3EEE0" stroke-width="1.6">
+            <path d="M15 88 Q80 20 145 88 Z"/>
+            <path d="M80 88 Q80 45 80 25"/>
+            <path d="M10 30 L10 88 M150 30 L150 88" stroke="#8CA88A" stroke-width="1.2" opacity="0.6"/>
+          </svg>
+        </div>
+        <h3>Understory 3P</h3>
+        <p class="desc">A domed profile that sheds falling branches and rain equally well. Roomy enough for a family trailhead trip.</p>
+        <div class="specs">
+          <div><div class="spec-label">Capacity</div><div class="spec-val">3 persons</div></div>
+          <div><div class="spec-label">Weight</div><div class="spec-val">3.4 kg</div></div>
+          <div><div class="spec-label">Season</div><div class="spec-val">3-season</div></div>
+          <div><div class="spec-label">Packed</div><div class="spec-val">50 × 18 cm</div></div>
+        </div>
+        <div class="card-footer">
+          <span class="price">KES 32,000</span>
+          <a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20buy%20the%20Understory%203P%20tent" target="_blank" rel="noopener" class="card-cta-wa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.6-1.28 1.16-1.77 1.2-.45.05-1 .07-1.62-.1-.37-.1-.85-.27-1.46-.53-2.57-1.1-4.25-3.7-4.38-3.87-.13-.17-1.05-1.39-1.05-2.65 0-1.26.66-1.88.9-2.13.22-.25.5-.3.66-.3h.48c.15 0 .36-.03.56.43.22.53.75 1.82.82 1.95.07.13.11.28.02.45-.09.17-.13.27-.26.42-.13.15-.28.33-.4.44-.13.13-.27.27-.12.53.15.26.66 1.1 1.42 1.78.98.87 1.8 1.14 2.06 1.27.26.13.41.11.56-.06.15-.17.65-.75.83-1.01.18-.26.35-.21.6-.13.24.09 1.53.72 1.79.85.26.13.44.2.5.31.07.11.07.65-.15 1.25z"/></svg>
+            Buy on WhatsApp
+          </a>
+        </div>
+      </article>
+
+      <!-- Tent 3 -->
+      <article class="card">
+        <div class="card-top">
+          <span class="terrain-badge">1500–2800M · SUBALPINE</span>
+        </div>
+        <div class="tent-icon">
+          <img src="https://images.unsplash.com/photo-1601922295720-f9474eb6c944?auto=format&fit=crop&w=600&q=70" alt="Switchback 2P tent pitched on grass near mountains" loading="lazy">
+        </div>
+        <h3>Switchback 2P</h3>
+        <p class="desc">A steeper pitch angle handles snow-load and gusting ridgelines. Our most-carried tent for multi-day treks.</p>
+        <div class="specs">
+          <div><div class="spec-label">Capacity</div><div class="spec-val">2 persons</div></div>
+          <div><div class="spec-label">Weight</div><div class="spec-val">1.8 kg</div></div>
+          <div><div class="spec-label">Season</div><div class="spec-val">3-season+</div></div>
+          <div><div class="spec-label">Packed</div><div class="spec-val">40 × 14 cm</div></div>
+        </div>
+        <div class="card-footer">
+          <span class="price">KES 42,500</span>
+          <a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20buy%20the%20Switchback%202P%20tent" target="_blank" rel="noopener" class="card-cta-wa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.6-1.28 1.16-1.77 1.2-.45.05-1 .07-1.62-.1-.37-.1-.85-.27-1.46-.53-2.57-1.1-4.25-3.7-4.38-3.87-.13-.17-1.05-1.39-1.05-2.65 0-1.26.66-1.88.9-2.13.22-.25.5-.3.66-.3h.48c.15 0 .36-.03.56.43.22.53.75 1.82.82 1.95.07.13.11.28.02.45-.09.17-.13.27-.26.42-.13.15-.28.33-.4.44-.13.13-.27.27-.12.53.15.26.66 1.1 1.42 1.78.98.87 1.8 1.14 2.06 1.27.26.13.41.11.56-.06.15-.17.65-.75.83-1.01.18-.26.35-.21.6-.13.24.09 1.53.72 1.79.85.26.13.44.2.5.31.07.11.07.65-.15 1.25z"/></svg>
+            Buy on WhatsApp
+          </a>
+        </div>
+      </article>
+
+      <!-- Tent 4 -->
+      <article class="card">
+        <div class="card-top">
+          <span class="terrain-badge">2800M+ · ALPINE</span>
+        </div>
+        <div class="tent-icon">
+          <img src="https://images.unsplash.com/photo-1573203655376-9089488d1f72?auto=format&fit=crop&w=600&q=70" alt="Summit Line 1P tent pitched near snow-capped mountains" loading="lazy">
+        </div>
+        <h3>Summit Line 1P</h3>
+        <p class="desc">Our 4-season expedition shell. Reinforced poles and a low profile built to hold in exposed, wind-loaded terrain.</p>
+        <div class="specs">
+          <div><div class="spec-label">Capacity</div><div class="spec-val">1 person</div></div>
+          <div><div class="spec-label">Weight</div><div class="spec-val">1.6 kg</div></div>
+          <div><div class="spec-label">Season</div><div class="spec-val">4-season</div></div>
+          <div><div class="spec-label">Packed</div><div class="spec-val">38 × 13 cm</div></div>
+        </div>
+        <div class="card-footer">
+          <span class="price">KES 58,000</span>
+          <a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20buy%20the%20Summit%20Line%201P%20tent" target="_blank" rel="noopener" class="card-cta-wa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.6-1.28 1.16-1.77 1.2-.45.05-1 .07-1.62-.1-.37-.1-.85-.27-1.46-.53-2.57-1.1-4.25-3.7-4.38-3.87-.13-.17-1.05-1.39-1.05-2.65 0-1.26.66-1.88.9-2.13.22-.25.5-.3.66-.3h.48c.15 0 .36-.03.56.43.22.53.75 1.82.82 1.95.07.13.11.28.02.45-.09.17-.13.27-.26.42-.13.15-.28.33-.4.44-.13.13-.27.27-.12.53.15.26.66 1.1 1.42 1.78.98.87 1.8 1.14 2.06 1.27.26.13.41.11.56-.06.15-.17.65-.75.83-1.01.18-.26.35-.21.6-.13.24.09 1.53.72 1.79.85.26.13.44.2.5.31.07.11.07.65-.15 1.25z"/></svg>
+            Buy on WhatsApp
+          </a>
+        </div>
+      </article>
+
+      <!-- Tent 5 -->
+      <article class="card">
+        <div class="card-top">
+          <span class="terrain-badge">ANY ELEVATION · BASE CAMP</span>
+        </div>
+        <div class="tent-icon">
+          <img src="https://images.unsplash.com/photo-1669131723907-305f46ca8ffe?auto=format&fit=crop&w=600&q=70" alt="Group of Basecamp tents pitched in a grassy field" loading="lazy">
+        </div>
+        <h3>Basecamp 6P</h3>
+        <p class="desc">A cabin-style tent for groups who are staying put. Stand-up head height and enough floor for two vestibules.</p>
+        <div class="specs">
+          <div><div class="spec-label">Capacity</div><div class="spec-val">6 persons</div></div>
+          <div><div class="spec-label">Weight</div><div class="spec-val">8.9 kg</div></div>
+          <div><div class="spec-label">Season</div><div class="spec-val">3-season</div></div>
+          <div><div class="spec-label">Packed</div><div class="spec-val">70 × 26 cm</div></div>
+        </div>
+        <div class="card-footer">
+          <span class="price">KES 49,000</span>
+          <a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20buy%20the%20Basecamp%206P%20tent" target="_blank" rel="noopener" class="card-cta-wa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.6-1.28 1.16-1.77 1.2-.45.05-1 .07-1.62-.1-.37-.1-.85-.27-1.46-.53-2.57-1.1-4.25-3.7-4.38-3.87-.13-.17-1.05-1.39-1.05-2.65 0-1.26.66-1.88.9-2.13.22-.25.5-.3.66-.3h.48c.15 0 .36-.03.56.43.22.53.75 1.82.82 1.95.07.13.11.28.02.45-.09.17-.13.27-.26.42-.13.15-.28.33-.4.44-.13.13-.27.27-.12.53.15.26.66 1.1 1.42 1.78.98.87 1.8 1.14 2.06 1.27.26.13.41.11.56-.06.15-.17.65-.75.83-1.01.18-.26.35-.21.6-.13.24.09 1.53.72 1.79.85.26.13.44.2.5.31.07.11.07.65-.15 1.25z"/></svg>
+            Buy on WhatsApp
+          </a>
+        </div>
+      </article>
+
+      <!-- Tent 6 -->
+      <article class="card">
+        <div class="card-top">
+          <span class="terrain-badge">ARID · DESERT & PLATEAU</span>
+        </div>
+        <div class="tent-icon">
+          <img src="https://images.unsplash.com/photo-1587485141599-1536684d990b?auto=format&fit=crop&w=600&q=70" alt="Mirage 2P tent pitched on arid desert plateau" loading="lazy">
+        </div>
+        <h3>Mirage 2P</h3>
+        <p class="desc">A reflective rainfly and high mesh ratio keep this one cool under direct sun without sacrificing wind stability.</p>
+        <div class="specs">
+          <div><div class="spec-label">Capacity</div><div class="spec-val">2 persons</div></div>
+          <div><div class="spec-label">Weight</div><div class="spec-val">2.0 kg</div></div>
+          <div><div class="spec-label">Season</div><div class="spec-val">3-season</div></div>
+          <div><div class="spec-label">Packed</div><div class="spec-val">42 × 15 cm</div></div>
+        </div>
+        <div class="card-footer">
+          <span class="price">KES 28,500</span>
+          <a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20buy%20the%20Mirage%202P%20tent" target="_blank" rel="noopener" class="card-cta-wa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.6-1.28 1.16-1.77 1.2-.45.05-1 .07-1.62-.1-.37-.1-.85-.27-1.46-.53-2.57-1.1-4.25-3.7-4.38-3.87-.13-.17-1.05-1.39-1.05-2.65 0-1.26.66-1.88.9-2.13.22-.25.5-.3.66-.3h.48c.15 0 .36-.03.56.43.22.53.75 1.82.82 1.95.07.13.11.28.02.45-.09.17-.13.27-.26.42-.13.15-.28.33-.4.44-.13.13-.27.27-.12.53.15.26.66 1.1 1.42 1.78.98.87 1.8 1.14 2.06 1.27.26.13.41.11.56-.06.15-.17.65-.75.83-1.01.18-.26.35-.21.6-.13.24.09 1.53.72 1.79.85.26.13.44.2.5.31.07.11.07.65-.15 1.25z"/></svg>
+            Buy on WhatsApp
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- Contour divider between catalog and why-section -->
+<svg class="contour-divider" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true" style="transform: scaleY(-1); background:#223225;">
+  <path d="M0,30 C200,10 300,50 500,30 C700,10 800,45 1200,25 L1200,60 L0,60 Z" fill="#16241C"/>
+</svg>
+
+<!-- ============ WHY SECTION ============ -->
+<section id="why">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-title">Why buy from Ikampu</div>
+    </div>
+    <div class="why-grid">
+      <div class="why-item">
+        <svg class="why-icon" viewBox="0 0 44 44" fill="none" stroke="#E37B4C" stroke-width="1.6">
+          <circle cx="22" cy="22" r="16"/>
+          <path d="M22 12 L22 22 L29 27"/>
+        </svg>
+        <h4>Tested before it's listed</h4>
+        <p>Every model spends a season in the terrain it's rated for, not a lab, before it goes up for sale.</p>
+      </div>
+      <div class="why-item">
+        <svg class="why-icon" viewBox="0 0 44 44" fill="none" stroke="#E37B4C" stroke-width="1.6">
+          <path d="M8 22 L18 32 L36 12"/>
+        </svg>
+        <h4>Specs you can trust</h4>
+        <p>Weight, packed size, and season rating are measured on the actual production unit — not the prototype.</p>
+      </div>
+      <div class="why-item">
+        <svg class="why-icon" viewBox="0 0 44 44" fill="none" stroke="#E37B4C" stroke-width="1.6">
+          <path d="M10 34 L10 18 L22 8 L34 18 L34 34 Z"/>
+          <line x1="10" y1="34" x2="34" y2="34"/>
+        </svg>
+        <h4>Built to be repaired, not replaced</h4>
+        <p>Pole segments, guy lines, and stakes are all sold separately, so one broken part doesn't retire the tent.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT BAND ============ -->
+<section id="contact" class="contact-band">
+  <div class="wrap">
+    <h2>Ready to order, or need help choosing?</h2>
+    <p>
+      This page doesn't run checkout directly — reach out and we'll confirm stock,
+      arrange payment, and get your tent shipped or ready for pickup.
+    </p>
+    <div class="hero-cta" style="justify-content:center;">
+      <a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20order%20a%20tent" target="_blank" rel="noopener" class="btn btn-primary" style="background:#25D366; color:#0b1a10;">WhatsApp 0724 512 288</a>
+      <a href="tel:+254724512288" class="btn btn-ghost">Call 0724 512 288</a>
+      <a href="mailto:orders@ikampu.co.ke" class="btn btn-ghost">Email orders@ikampu.co.ke</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <a href="#top" class="brand">
+      <svg width="20" height="20" viewBox="0 0 26 26" fill="none">
+        <path d="M13 3 L23 22 H3 Z" stroke="#E37B4C" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+      </svg>
+      IKAMPU
+    </a>
+    <span class="foot-note">© 2026 Ikampu Tents · ikampu.co.ke</span>
+  </div>
+</footer>
+
+
+<!-- Floating WhatsApp button, present on every scroll position -->
+<a href="https://wa.me/254724512288?text=Hi%20Ikampu%2C%20I%27d%20like%20to%20ask%20about%20a%20tent"
+   target="_blank" rel="noopener" class="whatsapp-float" aria-label="Chat with Ikampu on WhatsApp">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.6-1.28 1.16-1.77 1.2-.45.05-1 .07-1.62-.1-.37-.1-.85-.27-1.46-.53-2.57-1.1-4.25-3.7-4.38-3.87-.13-.17-1.05-1.39-1.05-2.65 0-1.26.66-1.88.9-2.13.22-.25.5-.3.66-.3h.48c.15 0 .36-.03.56.43.22.53.75 1.82.82 1.95.07.13.11.28.02.45-.09.17-.13.27-.26.42-.13.15-.28.33-.4.44-.13.13-.27.27-.12.53.15.26.66 1.1 1.42 1.78.98.87 1.8 1.14 2.06 1.27.26.13.41.11.56-.06.15-.17.65-.75.83-1.01.18-.26.35-.21.6-.13.24.09 1.53.72 1.79.85.26.13.44.2.5.31.07.11.07.65-.15 1.25z"/></svg>
+  Chat on WhatsApp
+</a>
+
+</body>
+</html>
